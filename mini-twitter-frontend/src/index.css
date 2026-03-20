@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@custom-variant dark (.dark &);
+
+
+@theme {
+  --color-primary: #0D93F2;
+  --color-primary-hover: #0B7ACC;
+  --color-background: #FFFFFF;
+  --color-text: #000000;
+  --color-text-dark: #FFFFFF;
+  --color-white-bg: #FAFAFA;
+  --color-footer-bg: #0F172B;
+}
+
+* {
+  font-family: "Manrope", sans-serif;
+}
+
+
+
+body {
+  margin: 0;
+  color: var(--text);
+}
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2 {
+  font-weight: 700;
+}
+
+
+
+
+p {
+  margin: 0;
+}
+
+
+
+button {
+  cursor: pointer;
+}
