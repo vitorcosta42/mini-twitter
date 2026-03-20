@@ -38,8 +38,8 @@ function getAuthHeaders() {
   };
 }
 
-export async function getPosts(): Promise<Post[]> {
-  const response = await fetch(BASE_URL, {
+export async function getPosts(page = 1): Promise<GetPostsResponse> {
+  const response = await fetch(`${BASE_URL}?page=${page}`, {
     headers: getAuthHeaders(),
   });
 
@@ -48,9 +48,8 @@ export async function getPosts(): Promise<Post[]> {
   }
 
   const data: GetPostsResponse = await response.json();
-  return data.posts;
+  return data;
 }
-
 export async function createPost(data: CreatePostData): Promise<Post> {
   const response = await fetch(BASE_URL, {
     method: "POST",

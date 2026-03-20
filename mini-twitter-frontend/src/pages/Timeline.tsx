@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Heart, LogOut, Image as ImageIcon, Ellipsis } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import ThemeToggle from "../components/ThemeToggle";
 import { useThemeStore } from "../stores/theme";
 import { useAuthStore } from "../stores/authStore";
@@ -81,14 +85,55 @@ export default function Timeline() {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
   const {
-    data: posts = [],
+    data,
     isLoading: loadingPosts,
     isError,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["posts"],
-    queryFn: getPosts,
+    queryFn: ({ pageParam = 1 }) => getPosts(pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const hasMore = lastPage.page * lastPage.limit < lastPage.total;
+      return hasMore ? lastPage.page + 1 : undefined;
+    },
   });
+
+  const posts = useMemo(() => {
+    return data?.pages.flatMap((page) => page.posts) ?? [];
+  }, [data]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+
+        if (firstEntry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        threshold: 0.5,
+      },
+    );
+
+    const currentRef = loadMoreRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const createPostMutation = useMutation({
     mutationFn: createPost,
@@ -626,16 +671,15 @@ export default function Timeline() {
             </div>
           ))
         )}
+        <div ref={loadMoreRef} className="h-10" />
 
-        <div className="flex justify-center gap-8 text-sm text-slate-400 pt-4 pb-10">
-          <button>{"<"}</button>
-          <button className="bg-[#0D93F2] text-white px-3 py-1 rounded-full font-medium">
-            1
-          </button>
-          <button className="font-medium">2</button>
-          <button className="font-medium">3</button>
-          <button className="font-medium">{">"}</button>
-        </div>
+        {isFetchingNextPage && (
+          <div className="bg-white p-4 rounded-xl border border-slate-100 dark:bg-slate-800 dark:border-slate-600">
+            <p className="text-black dark:text-white">
+              Carregando mais posts...
+            </p>
+          </div>
+        )}
       </div>
 
       <footer className="px-8 py-3 text-lg font-bold text-primary dark:bg-[#0F172B] dark:text-white">
