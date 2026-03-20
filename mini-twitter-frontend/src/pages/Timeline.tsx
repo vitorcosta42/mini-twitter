@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Heart, LogOut, Image as ImageIcon, Ellipsis } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ThemeToggle from "../components/ThemeToggle";
 import { useThemeStore } from "../stores/theme";
 import { useAuthStore } from "../stores/authStore";
@@ -23,42 +25,145 @@ export type Post = {
   likesCount: number;
 };
 
+type CreatePostFormData = {
+  title: string;
+  content: string;
+};
+
+type EditPostFormData = {
+  title: string;
+  content: string;
+};
+
 export default function Timeline() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
-
   const [preview, setPreview] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
-  const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
   const [openMenuPostId, setOpenMenuPostId] = useState<number | null>(null);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
   const [editImage, setEditImage] = useState<string | null>(null);
-  const [savingEdit, setSavingEdit] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const theme = useThemeStore((state) => state.theme);
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
 
   const isAuthenticated = !!token;
+  const queryClient = useQueryClient();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreatePostFormData>({
+    defaultValues: {
+      title: "",
+      content: "",
+    },
+  });
+
+  const {
+    register: registerEdit,
+    handleSubmit: handleSubmitEdit,
+    reset: resetEdit,
+    formState: { errors: editErrors },
+  } = useForm<EditPostFormData>({
+    defaultValues: {
+      title: "",
+      content: "",
+    },
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  const {
+    data: posts = [],
+    isLoading: loadingPosts,
+    isError,
+  } = useQuery({
+    queryKey: ["posts"],
+    queryFn: getPosts,
+  });
+
+  const createPostMutation = useMutation({
+    mutationFn: createPost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      reset({
+        title: "",
+        content: "",
+      });
+      setImage(null);
+      setPreview(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    onError: () => {
+      setError("Não foi possível publicar o post.");
+    },
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setOpenMenuPostId(null);
+    },
+    onError: () => {
+      setError("Não foi possível deletar o post.");
+    },
+  });
+
+  const likePostMutation = useMutation({
+    mutationFn: likePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: () => {
+      setError("Não foi possível curtir o post.");
+    },
+  });
+
+  const updatePostMutation = useMutation({
+    mutationFn: ({
+      postId,
+      payload,
+    }: {
+      postId: number;
+      payload: {
+        title: string;
+        content: string;
+        image: string;
+      };
+    }) => updatePost(postId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setEditingPostId(null);
+      resetEdit({
+        title: "",
+        content: "",
+      });
+      setEditImage(null);
+    },
+    onError: () => {
+      setError("Não foi possível atualizar o post.");
+    },
+  });
 
   const toggleMenu = (postId: number) => {
     setOpenMenuPostId((prev) => (prev === postId ? null : postId));
   };
+
+  function handleSelectEditImage() {
+    editFileInputRef.current?.click();
+  }
 
   const handleEditPost = (postId: number) => {
     const postToEdit = posts.find((post) => post.id === postId);
@@ -66,63 +171,32 @@ export default function Timeline() {
     if (!postToEdit) return;
 
     setEditingPostId(postId);
-    setEditTitle(postToEdit.title || "");
-    setEditContent(postToEdit.content || "");
+    resetEdit({
+      title: postToEdit.title || "",
+      content: postToEdit.content || "",
+    });
     setEditImage(postToEdit.image || null);
     setOpenMenuPostId(null);
   };
 
   const handleDeletePost = async (postId: number) => {
-    try {
-      await deletePost(postId);
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-      setOpenMenuPostId(null);
-    } catch (error) {
-      console.error("Erro ao deletar post:", error);
-      setError("Não foi possível deletar o post.");
-    }
+    setError("");
+    deletePostMutation.mutate(postId);
   };
 
-  const handleSaveEditPost = async () => {
+  const handleSaveEditPost = (data: EditPostFormData) => {
     if (editingPostId === null) return;
 
-    try {
-      setSavingEdit(true);
-
-      await updatePost(editingPostId, {
-        title: editTitle,
-        content: editContent,
+    setError("");
+    updatePostMutation.mutate({
+      postId: editingPostId,
+      payload: {
+        title: data.title,
+        content: data.content,
         image: editImage || "",
-      });
-
-      await fetchPosts();
-
-      setEditingPostId(null);
-      setEditTitle("");
-      setEditContent("");
-      setEditImage(null);
-    } catch (error) {
-      console.error("Erro ao atualizar post:", error);
-      setError("Não foi possível atualizar o post.");
-    } finally {
-      setSavingEdit(false);
-    }
+      },
+    });
   };
-
-  async function fetchPosts() {
-    try {
-      setLoadingPosts(true);
-      setError("");
-      const data = await getPosts();
-      console.log("POSTS DA API:", data);
-      setPosts(data);
-    } catch (error) {
-      console.error("Erro ao buscar posts:", error);
-      setError("Não foi possível carregar os posts.");
-    } finally {
-      setLoadingPosts(false);
-    }
-  }
 
   function handleSelectImage() {
     fileInputRef.current?.click();
@@ -161,54 +235,27 @@ export default function Timeline() {
 
   const handleCancelEdit = () => {
     setEditingPostId(null);
-    setEditTitle("");
-    setEditContent("");
+    resetEdit({
+      title: "",
+      content: "",
+    });
     setEditImage(null);
   };
 
-  async function handleCreatePost() {
-    if (!title.trim() || !content.trim()) {
-      setError("Preencha o título e o conteúdo do post.");
-      return;
-    }
+  const onSubmitCreatePost = (data: CreatePostFormData) => {
+    setError("");
 
-    try {
-      setPosting(true);
-      setError("");
+    createPostMutation.mutate({
+      title: data.title.trim(),
+      content: data.content.trim(),
+      image: image || undefined,
+    });
+  };
 
-      await createPost({
-        title: title.trim(),
-        content: content.trim(),
-        image: image || undefined,
-      });
-
-      setTitle("");
-      setContent("");
-      setImage(null);
-      setPreview(null);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      await fetchPosts();
-    } catch (error) {
-      console.error("Erro ao criar post:", error);
-      setError("Não foi possível publicar o post.");
-    } finally {
-      setPosting(false);
-    }
-  }
-
-  async function handleLikePost(postId: number) {
-    try {
-      await likePost(postId);
-      await fetchPosts();
-    } catch (error) {
-      console.error("Erro ao curtir post:", error);
-      setError("Não foi possível curtir o post.");
-    }
-  }
+  const handleLikePost = (postId: number) => {
+    setError("");
+    likePostMutation.mutate(postId);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white-bg dark:bg-gradient-to-b dark:from-[#0F172B] dark:to-[#070B14] text-[#0D93F2] dark:text-white">
@@ -270,22 +317,39 @@ export default function Timeline() {
 
       <div className="flex-1 w-[60%] mx-auto mt-6 space-y-6">
         {isAuthenticated && (
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xl">
+          <form
+            onSubmit={handleSubmit(onSubmitCreatePost)}
+            className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xl"
+          >
             <input
               type="text"
               placeholder="Título"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-transparent outline-none text-lg font-bold
-    placeholder:text-slate-400 text-black dark:text-white mb-3"
+              {...register("title", {
+                required: "O título é obrigatório",
+              })}
+              className="w-full bg-transparent outline-none text-lg font-bold placeholder:text-slate-400 text-black dark:text-white mb-3"
             />
+
+            {errors.title && (
+              <p className="text-sm text-red-500 mb-2">
+                {errors.title.message}
+              </p>
+            )}
 
             <textarea
               placeholder="E aí, o que está rolando?"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+              {...register("content", {
+                required: "O conteúdo é obrigatório",
+              })}
               className="w-full bg-transparent outline-none resize-none placeholder:text-slate-400 text-black dark:text-white"
             />
+
+            {errors.content && (
+              <p className="text-sm text-red-500 mt-2">
+                {errors.content.message}
+              </p>
+            )}
+
             {preview && (
               <div className="mt-3 relative">
                 <img
@@ -295,6 +359,7 @@ export default function Timeline() {
                 />
 
                 <button
+                  type="button"
                   onClick={() => {
                     setImage(null);
                     setPreview(null);
@@ -321,14 +386,12 @@ export default function Timeline() {
                   if (file) {
                     const reader = new FileReader();
 
-                    // Esta função dispara quando a leitura termina
                     reader.onloadend = () => {
                       const base64String = reader.result as string;
-                      setImage(base64String); // Agora o estado recebe a String
-                      setPreview(base64String); // O preview usa a mesma string Base64
+                      setImage(base64String);
+                      setPreview(base64String);
                     };
 
-                    // Inicia a leitura do arquivo como uma URL de dados (Base64)
                     reader.readAsDataURL(file);
                   }
                 }}
@@ -341,19 +404,19 @@ export default function Timeline() {
               />
 
               <button
-                onClick={handleCreatePost}
-                disabled={posting}
+                type="submit"
+                disabled={createPostMutation.isPending}
                 className="bg-[#0D93F2] px-8 py-2 rounded-full text-white text-sm font-bold hover:opacity-90 disabled:opacity-60"
               >
-                {posting ? "Postando..." : "Postar"}
+                {createPostMutation.isPending ? "Postando..." : "Postar"}
               </button>
             </div>
-          </div>
+          </form>
         )}
 
-        {error && (
+        {(error || isError) && (
           <div className="bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-300 p-3 rounded-lg border border-red-300 dark:border-red-800">
-            {error}
+            {error || "Não foi possível carregar os posts."}
           </div>
         )}
 
@@ -396,7 +459,7 @@ export default function Timeline() {
                   </button>
 
                   {openMenuPostId === post.id && (
-                    <div className="absolute right-0  w-36 rounded-lg border border-slate-200 bg-white shadow-lg z-50 dark:bg-slate-900 dark:border-slate-700">
+                    <div className="absolute right-0 w-36 rounded-lg border border-slate-200 bg-white shadow-lg z-50 dark:bg-slate-900 dark:border-slate-700">
                       <button
                         type="button"
                         onClick={() => handleEditPost(post.id)}
@@ -418,41 +481,101 @@ export default function Timeline() {
               </div>
 
               {editingPostId === post.id ? (
-                <div className="mt-3 space-y-3">
+                <form
+                  onSubmit={handleSubmitEdit(handleSaveEditPost)}
+                  className="mt-3 space-y-3"
+                >
                   <input
                     type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
                     placeholder="Título"
+                    {...registerEdit("title", {
+                      required: "O título é obrigatório",
+                    })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-black dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                   />
 
+                  {editErrors.title && (
+                    <p className="text-sm text-red-500">
+                      {editErrors.title.message}
+                    </p>
+                  )}
+
                   <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
                     placeholder="Conteúdo"
                     rows={4}
+                    {...registerEdit("content", {
+                      required: "O conteúdo é obrigatório",
+                    })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-black dark:bg-slate-900 dark:border-slate-700 dark:text-white resize-none"
                   />
 
+                  {editErrors.content && (
+                    <p className="text-sm text-red-500">
+                      {editErrors.content.message}
+                    </p>
+                  )}
+
                   {editImage && (
-                    <div>
+                    <div className="mt-3 relative">
                       <img
                         src={getImageUrl(editImage)}
-                        alt={editTitle || "Imagem do post"}
+                        alt="Imagem do post"
                         className="w-full max-h-96 object-cover rounded-lg"
                       />
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditImage(null);
+                          if (editFileInputRef.current) {
+                            editFileInputRef.current.value = "";
+                          }
+                        }}
+                        className="absolute top-2 right-2 bg-black/60 text-white font-bold text-xs px-2 py-1 rounded"
+                      >
+                        X
+                      </button>
                     </div>
                   )}
 
-                  <div className="flex gap-2 justify-end">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={editFileInputRef}
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+
+                      if (file) {
+                        const reader = new FileReader();
+
+                        reader.onloadend = () => {
+                          const base64String = reader.result as string;
+                          setEditImage(base64String);
+                        };
+
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={handleSaveEditPost}
-                      disabled={savingEdit}
+                      onClick={handleSelectEditImage}
+                      className="px-4 py-2 rounded-lg bg-slate-200 text-black hover:bg-slate-300 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600"
+                    >
+                      {editImage ? "Trocar imagem" : "Adicionar imagem"}
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      type="submit"
+                      disabled={updatePostMutation.isPending}
                       className="px-4 py-2 rounded-lg bg-[#0D93F2] text-white hover:opacity-90 disabled:opacity-60"
                     >
-                      {savingEdit ? "Salvando..." : "Salvar"}
+                      {updatePostMutation.isPending ? "Salvando..." : "Salvar"}
                     </button>
 
                     <button
@@ -463,11 +586,11 @@ export default function Timeline() {
                       Cancelar
                     </button>
                   </div>
-                </div>
+                </form>
               ) : (
                 <>
                   {post.title && (
-                    <h2 className="mt-2 font-bold text-black dark:text-white text-lg ">
+                    <h2 className="mt-2 font-bold text-black dark:text-white text-lg">
                       {post.title}
                     </h2>
                   )}

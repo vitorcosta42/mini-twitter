@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { loginSchema, type LoginFormData } from "../../schemas/authSchema";
 import { loginUser } from "../../services/auth";
 import { useAuthStore } from "../../stores/authStore";
@@ -16,7 +17,7 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -25,17 +26,22 @@ export function LoginForm() {
     },
   });
 
-  async function onSubmit(data: LoginFormData) {
-    try {
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (response) => {
       setApiError("");
-
-      const response = await loginUser(data);
       login(response.token);
       navigate("/");
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Erro ao fazer login:", error);
       setApiError("E-mail ou senha inválidos.");
-    }
+    },
+  });
+
+  function onSubmit(data: LoginFormData) {
+    setApiError("");
+    loginMutation.mutate(data);
   }
 
   return (
@@ -111,6 +117,7 @@ export function LoginForm() {
         {errors.password && (
           <p className="text-sm text-red-500 pt-1">{errors.password.message}</p>
         )}
+
         {apiError && !errors.password && (
           <p className="text-sm text-red-500 text-left pt-1">{apiError}</p>
         )}
@@ -118,10 +125,10 @@ export function LoginForm() {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={loginMutation.isPending}
         className="w-full py-3 rounded-full bg-[#0D93F2] hover:opacity-90 transition font-bold text-white disabled:opacity-60"
       >
-        {isSubmitting ? "Entrando..." : "Continuar"}
+        {loginMutation.isPending ? "Entrando..." : "Continuar"}
       </button>
 
       <p className="text-xs text-center text-slate-600 dark:text-slate-400">

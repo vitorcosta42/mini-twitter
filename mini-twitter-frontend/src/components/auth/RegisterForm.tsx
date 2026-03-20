@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Eye, EyeOff, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import {
   registerSchema,
   type RegisterFormData,
@@ -19,7 +20,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -29,15 +30,21 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     },
   });
 
-  async function onSubmit(data: RegisterFormData) {
-    try {
+  const registerMutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
       setApiError("");
-      await registerUser(data);
       onSuccess();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Erro ao cadastrar:", error);
       setApiError("Não foi possível realizar o cadastro.");
-    }
+    },
+  });
+
+  function onSubmit(data: RegisterFormData) {
+    setApiError("");
+    registerMutation.mutate(data);
   }
 
   return (
@@ -149,10 +156,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={registerMutation.isPending}
         className="w-full py-3 rounded-full bg-[#0D93F2] hover:opacity-90 transition font-bold text-white disabled:opacity-60"
       >
-        {isSubmitting ? "Cadastrando..." : "Continuar"}
+        {registerMutation.isPending ? "Cadastrando..." : "Continuar"}
       </button>
 
       <p className="text-xs text-center text-slate-600 dark:text-slate-400">
