@@ -28,6 +28,10 @@ export type Post = {
   authorName: string;
   createdAt: string;
   likesCount: number;
+  userId?: number;
+  user?: {
+    id: number;
+  };
 };
 
 type CreatePostFormData = {
@@ -119,7 +123,8 @@ export default function Timeline() {
         }
       },
       {
-        threshold: 0.5,
+        threshold: 1,
+        rootMargin: "200px",
       },
     );
 
@@ -302,6 +307,7 @@ export default function Timeline() {
     setError("");
     likePostMutation.mutate(postId);
   };
+  const user = useAuthStore((state) => state.user);
 
   return (
     <div className="min-h-screen flex flex-col bg-white-bg dark:bg-gradient-to-b dark:from-[#0F172B] dark:to-[#070B14] text-[#0D93F2] dark:text-white">
@@ -418,7 +424,7 @@ export default function Timeline() {
               </div>
             )}
 
-            <div className="flex justify-between items-start mt-4 border-t border-slate-200 dark:border-slate-600 pt-2">
+            <div className="flex justify-between items-center mt-4 border-t border-slate-200 dark:border-slate-600 pt-2">
               <input
                 type="file"
                 accept="image/*"
@@ -443,8 +449,9 @@ export default function Timeline() {
 
               <ImageIcon
                 onClick={handleSelectImage}
-                className="text-[#0D93F2] cursor-pointer rounded-full hover:text-blue-500 transition shrink-0"
-                size={24}
+                className="text-[#0D93F2] cursor-pointer 
+                rounded-full hover:text-blue-500 transition shrink-0"
+                size={32}
               />
 
               <button
@@ -494,14 +501,16 @@ export default function Timeline() {
                 </div>
 
                 <div className="relative shrink-0">
-                  <button
-                    type="button"
-                    aria-label="menu"
-                    onClick={() => toggleMenu(post.id)}
-                    className="hover:cursor-pointer hover:text-[#0D93F2] hover:bg-primary/10 rounded-full p-1 text-slate-400 dark:text-slate-400 dark:hover:text-white transition"
-                  >
-                    <Ellipsis />
-                  </button>
+                  {user && user.id === post.authorId && (
+                    <button
+                      type="button"
+                      aria-label="menu"
+                      onClick={() => toggleMenu(post.id)}
+                      className="hover:cursor-pointer hover:text-[#0D93F2] hover:bg-primary/10 rounded-full p-1 text-slate-400 dark:text-slate-400 dark:hover:text-white transition"
+                    >
+                      <Ellipsis />
+                    </button>
+                  )}
 
                   {openMenuPostId === post.id && (
                     <div className="absolute right-0 w-36 rounded-lg border border-slate-200 bg-white shadow-lg z-50 dark:bg-slate-900 dark:border-slate-700">

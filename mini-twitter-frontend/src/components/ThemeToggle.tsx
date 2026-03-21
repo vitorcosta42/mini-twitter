@@ -12,7 +12,7 @@ export default function ThemeToggle() {
       dark:bg-gray-800 hover:bg-gray-100 
           dark:hover:bg-gray-600 transition"
     >
-      {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+      {theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
     </button>
   );
 }

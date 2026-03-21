@@ -30,7 +30,7 @@ describe("Post Service", () => {
       const result = await getPosts(2, "search-term");
 
       expect(mockedFetch).toHaveBeenCalledWith(
-        `${ENV}/posts?page=2&search=search-term`,
+        `${ENV.API_URL}/posts?page=2&search=search-term`,
       );
       expect(result.posts).toHaveLength(1);
     });
@@ -53,7 +53,7 @@ describe("Post Service", () => {
       await createPost(newPost);
 
       expect(mockedFetch).toHaveBeenCalledWith(
-        `${ENV}/posts`,
+        `${ENV.API_URL}/posts`,
         expect.objectContaining({
           method: "POST",
           headers: {
@@ -77,7 +77,7 @@ describe("Post Service", () => {
       await updatePost(1, updateData);
 
       expect(mockedFetch).toHaveBeenCalledWith(
-        `${ENV}/posts/1`,
+        `${ENV.API_URL}/posts/1`,
         expect.objectContaining({
           method: "PUT",
           body: JSON.stringify(updateData),
@@ -93,7 +93,7 @@ describe("Post Service", () => {
       await deletePost(123);
 
       expect(mockedFetch).toHaveBeenCalledWith(
-        `${ENV}/posts/123`,
+        `${ENV.API_URL}/posts/123`,
         expect.objectContaining({ method: "DELETE" }),
       );
     });
@@ -111,7 +111,7 @@ describe("Post Service", () => {
       await likePost(1);
 
       expect(mockedFetch).toHaveBeenCalledWith(
-        `${ENV}/posts/1/like`,
+        `${ENV.API_URL}/posts/1/like`,
         expect.objectContaining({ method: "POST" }),
       );
     });

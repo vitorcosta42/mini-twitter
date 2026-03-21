@@ -30,7 +30,7 @@ export function LoginForm() {
     mutationFn: loginUser,
     onSuccess: (response) => {
       setApiError("");
-      login(response.token);
+      login(response.token, response.user);
       navigate("/");
     },
     onError: (error) => {

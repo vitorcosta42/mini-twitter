@@ -22,7 +22,7 @@ export type UpdatePostData = {
   image: string;
 };
 
-const BASE_URL = `${ENV}/posts`;
+const BASE_URL = `${ENV.API_URL}/posts`;
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -35,7 +35,7 @@ function getAuthHeaders() {
 
 export async function getPosts(page = 1, search = "") {
   const response = await fetch(
-    `${ENV}/posts?page=${page}&search=${encodeURIComponent(search)}`,
+    `${ENV.API_URL}/posts?page=${page}&search=${encodeURIComponent(search)}`,
   );
 
   if (!response.ok) {

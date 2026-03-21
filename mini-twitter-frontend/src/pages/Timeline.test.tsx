@@ -38,6 +38,7 @@ describe("Timeline Page - Advanced Coverage", () => {
     title: "Post Original",
     content: "Conteúdo Original",
     authorName: "Vitor",
+    authorId: 1,
     userId: 1,
     createdAt: "2024-01-01",
     likesCount: 0,
@@ -110,9 +111,18 @@ describe("Timeline Page - Advanced Coverage", () => {
   });
 
   it("should open edit form and update post", async () => {
+    const mockPost = {
+      id: 1,
+      authorId: 1,
+      title: "Post Original",
+      content: "Conteúdo Original",
+    };
+
     useAuthStore.setState({
       token: "fake-token",
+      user: { id: 1, name: "Vitor", email: "vitor@email.com" },
     });
+
     mockedPostService.getPosts.mockResolvedValue({
       posts: [mockPost],
       page: 1,
@@ -130,9 +140,7 @@ describe("Timeline Page - Advanced Coverage", () => {
 
     const titleInputs = screen.getAllByPlaceholderText("Título");
     const titleInput = titleInputs[1];
-    fireEvent.change(titleInput, {
-      target: { value: "Título Editado" },
-    });
+    fireEvent.change(titleInput, { target: { value: "Título Editado" } });
 
     const saveBtn = screen.getByText(/salvar/i);
     fireEvent.click(saveBtn);

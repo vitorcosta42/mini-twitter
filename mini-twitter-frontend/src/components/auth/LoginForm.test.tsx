@@ -85,7 +85,10 @@ describe("LoginForm Component", () => {
 
   it("should call login API and navigate to home on success", async () => {
     const mockToken = "fake-jwt-token";
-    mockedAuthService.loginUser.mockResolvedValue({ token: mockToken });
+    mockedAuthService.loginUser.mockResolvedValue({
+      token: mockToken,
+      user: {},
+    });
     const loginSpy = jest.spyOn(useAuthStore.getState(), "login");
 
     render(<LoginForm />, { wrapper });
@@ -108,7 +111,7 @@ describe("LoginForm Component", () => {
         expect.anything(),
       );
 
-      expect(loginSpy).toHaveBeenCalledWith(mockToken);
+      expect(loginSpy).toHaveBeenCalledWith(mockToken, {});
       expect(mockedNavigate).toHaveBeenCalledWith("/");
     });
   });

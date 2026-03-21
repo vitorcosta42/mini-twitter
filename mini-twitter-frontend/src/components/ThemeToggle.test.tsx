@@ -17,7 +17,7 @@ describe("ThemeToggle Component", () => {
     jest.clearAllMocks();
   });
 
-  it("should render the Moon icon when theme is light", () => {
+  it("should render the Sun icon when theme is light", () => {
     mockedUseThemeStore.mockReturnValue({
       theme: "light",
       toggleTheme: toggleThemeMock,
@@ -28,7 +28,7 @@ describe("ThemeToggle Component", () => {
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
-  it("should render the Sun icon when theme is dark", () => {
+  it("should render the Moon icon when theme is dark", () => {
     mockedUseThemeStore.mockReturnValue({
       theme: "dark",
       toggleTheme: toggleThemeMock,
