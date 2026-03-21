@@ -143,19 +143,24 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             />
           ) : (
             <Eye
+              data-testid="toggle-password"
               onClick={() => setShowPassword(true)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
               size={18}
             />
           )}
         </div>
-
-        {errors.password && (
-          <p className="text-sm text-red-500 mt-2">{errors.password.message}</p>
-        )}
+        <div>
+          {errors.password && (
+            <p className="text-sm text-red-500 mt-2">
+              {errors.password.message}
+            </p>
+          )}
+          {apiError && (
+            <p className="text-sm text-red-500 text-left">{apiError}</p>
+          )}
+        </div>
       </div>
-
-      {apiError && <p className="text-sm text-red-500 text-left">{apiError}</p>}
 
       <button
         type="submit"

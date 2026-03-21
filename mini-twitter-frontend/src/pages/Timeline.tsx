@@ -18,6 +18,7 @@ import {
   likePost,
   updatePost,
 } from "../services/post";
+import { ENV } from "../config/env";
 
 export type Post = {
   id: number;
@@ -275,7 +276,7 @@ export default function Timeline() {
       return image;
     }
 
-    return `${import.meta.env.VITE_API_URL}${image.startsWith("/") ? "" : "/"}${image}`;
+    return `${ENV.API_URL}${image.startsWith("/") ? "" : "/"}${image}`;
   }
 
   const handleCancelEdit = () => {
@@ -323,6 +324,7 @@ export default function Timeline() {
           {isAuthenticated && (
             <button
               onClick={handleLogout}
+              aria-label="logout"
               className="p-2 font-bold dark:bg-gray-800 hover:bg-white-bg rounded-full border border-gray-300 
         dark:border-none dark:hover:bg-gray-600 transition"
             >
@@ -494,6 +496,7 @@ export default function Timeline() {
                 <div className="relative shrink-0">
                   <button
                     type="button"
+                    aria-label="menu"
                     onClick={() => toggleMenu(post.id)}
                     className="hover:cursor-pointer hover:text-[#0D93F2] hover:bg-primary/10 rounded-full p-1 text-slate-400 dark:text-slate-400 dark:hover:text-white transition"
                   >
@@ -656,6 +659,8 @@ export default function Timeline() {
               <div className="mt-3">
                 <Heart
                   size={16}
+                  data-testid="heart-icon"
+                  aria-label="like"
                   onClick={() => handleLikePost(post.id)}
                   fill={post.likesCount ? "currentColor" : "none"}
                   className={`cursor-pointer transition ${

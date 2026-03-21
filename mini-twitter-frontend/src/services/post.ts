@@ -1,3 +1,5 @@
+import { ENV } from "../config/env";
+
 export type Post = {
   id: number;
   title: string;
@@ -20,7 +22,7 @@ export type UpdatePostData = {
   image: string;
 };
 
-const BASE_URL = `${import.meta.env.VITE_API_URL}/posts`;
+const BASE_URL = `${ENV}/posts`;
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -33,14 +35,14 @@ function getAuthHeaders() {
 
 export async function getPosts(page = 1, search = "") {
   const response = await fetch(
-    `${import.meta.env.VITE_API_URL}/posts?page=${page}&search=${encodeURIComponent(search)}`,
+    `${ENV}/posts?page=${page}&search=${encodeURIComponent(search)}`,
   );
 
   if (!response.ok) {
     throw new Error("Erro ao buscar posts");
   }
 
-  return response.json(); // deve retornar { posts: Post[], page, limit, total }
+  return response.json();
 }
 
 export async function createPost(data: CreatePostData): Promise<Post> {

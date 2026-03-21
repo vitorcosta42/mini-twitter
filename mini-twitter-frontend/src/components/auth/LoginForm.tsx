@@ -101,12 +101,14 @@ export function LoginForm() {
 
           {showPassword ? (
             <EyeOff
+              data-testid="toggle-password"
               onClick={() => setShowPassword(false)}
               className="absolute right-3 top-4 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
               size={18}
             />
           ) : (
             <Eye
+              data-testid="toggle-password-visibility"
               onClick={() => setShowPassword(true)}
               className="absolute right-3 top-4 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
               size={18}
