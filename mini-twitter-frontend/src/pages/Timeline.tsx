@@ -48,6 +48,7 @@ export default function Timeline() {
   const [openMenuPostId, setOpenMenuPostId] = useState<number | null>(null);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editImage, setEditImage] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const editFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const theme = useThemeStore((state) => state.theme);
@@ -86,7 +87,6 @@ export default function Timeline() {
   }, [theme]);
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
   const {
     data,
     isLoading: loadingPosts,
@@ -95,8 +95,8 @@ export default function Timeline() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["posts"],
-    queryFn: ({ pageParam = 1 }) => getPosts(pageParam),
+    queryKey: ["posts", searchTerm],
+    queryFn: ({ pageParam = 1 }) => getPosts(pageParam, searchTerm),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const hasMore = lastPage.page * lastPage.limit < lastPage.total;
@@ -275,7 +275,7 @@ export default function Timeline() {
       return image;
     }
 
-    return `http://localhost:3000${image.startsWith("/") ? "" : "/"}${image}`;
+    return `${import.meta.env.VITE_API_URL}${image.startsWith("/") ? "" : "/"}${image}`;
   }
 
   const handleCancelEdit = () => {
@@ -304,42 +304,39 @@ export default function Timeline() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white-bg dark:bg-gradient-to-b dark:from-[#0F172B] dark:to-[#070B14] text-[#0D93F2] dark:text-white">
-      <div className="border-b border-slate-200 dark:border-slate-500 px-6 py-4 flex justify-between items-center">
-        <h1 className="font-bold text-lg text-[#0D93F2] dark:text-white">
+      <div className="border-b border-slate-200 dark:border-slate-500 px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-2">
+        <h1 className="hidden sm:flex font-bold text-lg text-[#0D93F2] dark:text-white flex-shrink-0">
           Mini Twitter
         </h1>
 
         <input
           type="text"
           placeholder="Buscar por post..."
-          className="bg-white dark:bg-slate-800 
-          text-black dark:text-white 
-          text-sm 
-          px-4 py-2 rounded-lg outline-none 
-          placeholder:text-slate-500 
-          dark:placeholder:text-slate-400 
-          w-1/2"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 min-w-[150px] sm:max-w-md bg-white dark:bg-slate-800 
+    text-black dark:text-white text-sm px-4 py-2 rounded-lg outline-none 
+    placeholder:text-slate-500 dark:placeholder:text-slate-400"
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 flex-shrink-0 flex-wrap">
           {isAuthenticated && (
             <button
               onClick={handleLogout}
               className="p-2 font-bold dark:bg-gray-800 hover:bg-white-bg rounded-full border border-gray-300 
-              dark:border-none 
-              dark:hover:bg-gray-600 transition"
+        dark:border-none dark:hover:bg-gray-600 transition"
             >
               <LogOut size={20} />
             </button>
           )}
 
           {!isAuthenticated && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               <Link to="/login?tab=register">
                 <button
-                  className="rounded-full px-6 py-2 font-bold border border-gray-300 hover:bg-gray-200 
-                  hover:text-black dark:border-slate-600 text-slate-600 
-                  dark:text-white dark:hover:bg-gray-800 dark:hover:text-white transition"
+                  className="rounded-full px-4 py-2 font-bold border border-gray-300 hover:bg-gray-200 
+            hover:text-black dark:border-slate-600 text-slate-600 
+            dark:text-white dark:hover:bg-gray-800 dark:hover:text-white transition text-sm"
                 >
                   Registrar-se
                 </button>
@@ -347,8 +344,8 @@ export default function Timeline() {
 
               <Link to="/login?tab=login">
                 <button
-                  className="rounded-full font-bold bg-primary px-14 py-2 text-white
-                  hover:bg-primary-hover transition"
+                  className="rounded-full font-bold bg-primary px-6 py-2 text-white
+            hover:bg-primary-hover transition text-sm"
                 >
                   Login
                 </button>
@@ -360,7 +357,7 @@ export default function Timeline() {
         </div>
       </div>
 
-      <div className="flex-1 w-[60%] mx-auto mt-6 space-y-6">
+      <div className="flex-1 w-full max-w-3xl mx-auto mt-4 sm:mt-6 px-4 sm:px-6 space-y-4 sm:space-y-6">
         {isAuthenticated && (
           <form
             onSubmit={handleSubmit(onSubmitCreatePost)}
@@ -372,7 +369,7 @@ export default function Timeline() {
               {...register("title", {
                 required: "O título é obrigatório",
               })}
-              className="w-full bg-transparent outline-none text-lg font-bold placeholder:text-slate-400 text-black dark:text-white mb-3"
+              className="w-full bg-transparent outline-none text-base sm:text-lg font-bold placeholder:text-slate-400 text-black dark:text-white mb-3"
             />
 
             {errors.title && (
@@ -386,7 +383,7 @@ export default function Timeline() {
               {...register("content", {
                 required: "O conteúdo é obrigatório",
               })}
-              className="w-full bg-transparent outline-none resize-none placeholder:text-slate-400 text-black dark:text-white"
+              className="w-full bg-transparent outline-none resize-none placeholder:text-slate-400 text-black dark:text-white text-sm sm:text-base"
             />
 
             {errors.content && (
@@ -444,14 +441,14 @@ export default function Timeline() {
 
               <ImageIcon
                 onClick={handleSelectImage}
-                className="text-[#0D93F2] cursor-pointer rounded-full hover:text-blue-500 transition"
+                className="text-[#0D93F2] cursor-pointer rounded-full hover:text-blue-500 transition shrink-0"
                 size={24}
               />
 
               <button
                 type="submit"
                 disabled={createPostMutation.isPending}
-                className="bg-[#0D93F2] px-8 py-2 rounded-full text-white text-sm font-bold hover:opacity-90 disabled:opacity-60"
+                className="bg-[#0D93F2] px-6 sm:px-8 py-2 rounded-full text-white text-sm font-bold hover:opacity-90 disabled:opacity-60"
               >
                 {createPostMutation.isPending ? "Postando..." : "Postar"}
               </button>
@@ -479,14 +476,14 @@ export default function Timeline() {
           posts.map((post) => (
             <div
               key={post.id}
-              className="bg-white p-4 rounded-xl border border-slate-100 dark:bg-slate-800 dark:border dark:border-slate-600"
+              className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 dark:bg-slate-800 dark:border dark:border-slate-600"
             >
-              <div className="flex items-center text-md justify-between">
-                <div className="flex items-center gap-2 text-md">
-                  <span className="font-bold text-black dark:text-white">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2 text-sm min-w-0">
+                  <span className="font-bold text-black dark:text-white break-words">
                     {post.authorName}
                   </span>
-                  <span className="text-slate-400 text-sm">
+                  <span className="text-slate-400 text-sm break-words">
                     @{post.authorName}
                   </span>
                   <span className="text-slate-500 text-sm">
@@ -494,7 +491,7 @@ export default function Timeline() {
                   </span>
                 </div>
 
-                <div className="relative">
+                <div className="relative shrink-0">
                   <button
                     type="button"
                     onClick={() => toggleMenu(post.id)}
@@ -614,7 +611,7 @@ export default function Timeline() {
                     </button>
                   </div>
 
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex gap-2 justify-end flex-wrap">
                     <button
                       type="submit"
                       disabled={updatePostMutation.isPending}
@@ -635,12 +632,12 @@ export default function Timeline() {
               ) : (
                 <>
                   {post.title && (
-                    <h2 className="mt-2 font-bold text-black dark:text-white text-lg">
+                    <h2 className="mt-2 font-bold text-black dark:text-white text-base sm:text-lg break-words">
                       {post.title}
                     </h2>
                   )}
 
-                  <p className="mt-2 text-black dark:text-slate-200 text-md">
+                  <p className="mt-2 text-black dark:text-slate-200 text-sm sm:text-base break-words">
                     {post.content}
                   </p>
 
@@ -682,7 +679,7 @@ export default function Timeline() {
         )}
       </div>
 
-      <footer className="px-8 py-3 text-lg font-bold text-primary dark:bg-[#0F172B] dark:text-white">
+      <footer className="px-4 sm:px-8 py-3 text-base sm:text-lg font-bold text-primary dark:bg-[#0F172B] dark:text-white">
         Mini Twitter
       </footer>
     </div>

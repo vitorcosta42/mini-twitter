@@ -1,4 +1,3 @@
-# Logs
 logs
 *.log
 npm-debug.log*
@@ -8,17 +7,35 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+
 dist
 dist-ssr
+build
+
+coverage
+
+cypress/videos
+cypress/screenshots
+
+.env
+.env.*
+!.env.example
+
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
 *.local
 
-# Editor directories and files
+.DS_Store
+Thumbs.db
+
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+*.tsbuildinfo

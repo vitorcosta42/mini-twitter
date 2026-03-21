@@ -48,13 +48,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
       <div>
-        <h2 className="text-3xl font-semibold mb-2 text-left">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-2 text-left leading-tight">
           Olá, vamos começar!
         </h2>
 
-        <p className="text-slate-600 dark:text-slate-400 text-left">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 text-left">
           Por favor, insira os dados solicitados para fazer cadastro.
         </p>
       </div>
@@ -72,12 +72,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             border border-slate-300 dark:border-slate-700
             rounded-lg py-3 pl-4 pr-10
             outline-none focus:border-blue-500
+            text-sm sm:text-base
             text-black dark:text-white
             placeholder:text-slate-500 dark:placeholder:text-slate-400"
           />
 
           <User
-            className="absolute right-3 top-4 text-slate-500 dark:text-slate-400"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400"
             size={18}
           />
         </div>
@@ -100,12 +101,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             border border-slate-300 dark:border-slate-700
             rounded-lg py-3 pl-4 pr-10
             outline-none focus:border-blue-500
+            text-sm sm:text-base
             text-black dark:text-white
             placeholder:text-slate-500 dark:placeholder:text-slate-400"
           />
 
           <Mail
-            className="absolute right-3 top-4 text-slate-500 dark:text-slate-400"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400"
             size={18}
           />
         </div>
@@ -128,6 +130,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             border border-slate-300 dark:border-slate-700
             rounded-lg py-3 pl-4 pr-10
             outline-none focus:border-blue-500
+            text-sm sm:text-base
             text-black dark:text-white
             placeholder:text-slate-500 dark:placeholder:text-slate-400"
           />
@@ -135,13 +138,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           {showPassword ? (
             <EyeOff
               onClick={() => setShowPassword(false)}
-              className="absolute right-3 top-4 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
               size={18}
             />
           ) : (
             <Eye
               onClick={() => setShowPassword(true)}
-              className="absolute right-3 top-4 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:cursor-pointer"
               size={18}
             />
           )}
@@ -157,12 +160,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <button
         type="submit"
         disabled={registerMutation.isPending}
-        className="w-full py-3 rounded-full bg-[#0D93F2] hover:opacity-90 transition font-bold text-white disabled:opacity-60"
+        className="w-full py-3 rounded-full bg-[#0D93F2] hover:opacity-90 transition font-bold text-white disabled:opacity-60 text-sm sm:text-base"
       >
         {registerMutation.isPending ? "Cadastrando..." : "Continuar"}
       </button>
 
-      <p className="text-xs text-center text-slate-600 dark:text-slate-400">
+      <p className="text-xs sm:text-sm text-center text-slate-600 dark:text-slate-400 leading-relaxed">
         Ao clicar em continuar, você concorda com nossos
         <span className="underline mx-1">Termos de Serviço</span>e
         <span className="underline ml-1">Política de Privacidade</span>.

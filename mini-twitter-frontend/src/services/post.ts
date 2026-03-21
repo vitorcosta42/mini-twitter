@@ -14,20 +14,13 @@ export type CreatePostData = {
   image?: string;
 };
 
-type GetPostsResponse = {
-  posts: Post[];
-  total: number;
-  page: number;
-  limit: number;
-};
-
 export type UpdatePostData = {
   title: string;
   content: string;
   image: string;
 };
 
-const BASE_URL = "http://localhost:3000/posts";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/posts`;
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -38,18 +31,18 @@ function getAuthHeaders() {
   };
 }
 
-export async function getPosts(page = 1): Promise<GetPostsResponse> {
-  const response = await fetch(`${BASE_URL}?page=${page}`, {
-    headers: getAuthHeaders(),
-  });
+export async function getPosts(page = 1, search = "") {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/posts?page=${page}&search=${encodeURIComponent(search)}`,
+  );
 
   if (!response.ok) {
     throw new Error("Erro ao buscar posts");
   }
 
-  const data: GetPostsResponse = await response.json();
-  return data;
+  return response.json(); // deve retornar { posts: Post[], page, limit, total }
 }
+
 export async function createPost(data: CreatePostData): Promise<Post> {
   const response = await fetch(BASE_URL, {
     method: "POST",

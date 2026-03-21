@@ -1,73 +1,158 @@
-# React + TypeScript + Vite
+<!-- --- -->
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 📱 Mini Twitter - Frontend
 
-Currently, two official plugins are available:
+Aplicação front-end de um **Mini Twitter**, desenvolvida com foco em boas práticas modernas de desenvolvimento, incluindo componentização, gerenciamento de estado, testes e consumo de API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Tecnologias utilizadas
 
-## React Compiler
+- ⚛️ React
+- ⚡ Vite
+- 🟦 TypeScript
+- 🎨 Tailwind CSS
+- 🔄 React Query (TanStack Query)
+- 📦 Zustand (gerenciamento de estado)
+- 🧪 Jest + Testing Library (testes unitários)
+- 🌐 Cypress (testes E2E)
+- 🔗 React Router DOM
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📸 Funcionalidades
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ✅ Listagem de posts (timeline)
+- 🔍 Busca de posts
+- 🔁 Paginação infinita (infinite scroll)
+- 👤 Autenticação (login e registro)
+- ✍️ Criação de posts
+- ✏️ Edição de posts
+- ❌ Exclusão de posts
+- ❤️ Curtir posts
+- 🌙 Tema dark/light
+- 📱 Layout responsivo
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📂 Estrutura do projeto
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+ ├── pages/
+ ├── components/
+ ├── services/
+ └── stores/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚙️ Como rodar o projeto
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/seu-usuario/mini-twitter-frontend.git
 ```
+
+```bash
+cd mini-twitter-frontend
+```
+
+---
+
+### 2. Instale as dependências
+
+```bash
+npm install
+```
+
+---
+
+### 3. Configure as variáveis de ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+> ⚠️ Certifique-se de que o back-end está rodando.
+
+---
+
+### 4. Execute o projeto
+
+```bash
+npm run dev
+```
+
+A aplicação estará disponível em:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 🧪 Testes
+
+### ▶️ Rodar testes unitários (Jest)
+
+````bash
+npm run test
+
+Modo watch:
+
+```bash
+npm run test:watch
+````
+
+---
+
+### 🌐 Rodar testes E2E (Cypress)
+
+Abrir interface:
+
+```bash
+npm run cypress:open
+```
+
+Modo headless:
+
+```bash
+npm run cypress:run
+```
+
+---
+
+## 🧠 Decisões técnicas
+
+- **TanStack Query** foi utilizado para gerenciamento de cache e requisições assíncronas.
+- **Zustand** para estado global simples (ex: autenticação).
+- **Tailwind CSS** para estilização rápida e responsiva.
+- **Jest + Testing Library** para testes focados no comportamento do usuário.
+- **Cypress** para testes de ponta a ponta simulando uso real.
+
+---
+
+## 📌 Melhorias futuras
+
+- 🔔 Notificações em tempo real
+- 💬 Comentários em posts
+- 🚀 Deploy (Vercel / Netlify)
+
+---
+
+## 👨‍💻 Autor
+
+Desenvolvido por **Vitor Costa**
+
+- 💼 Desenvolvedor Front-end / Full-stack
+- 🚀 Focado em React, Vue e performance
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
+
+---
