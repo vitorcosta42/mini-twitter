@@ -380,12 +380,6 @@ export default function Timeline() {
               className="w-full bg-transparent outline-none text-base sm:text-lg font-bold placeholder:text-slate-400 text-black dark:text-white mb-3"
             />
 
-            {errors.title && (
-              <p className="text-sm text-red-500 mb-2">
-                {errors.title.message}
-              </p>
-            )}
-
             <textarea
               placeholder="E aí, o que está rolando?"
               {...register("content", {
@@ -393,12 +387,6 @@ export default function Timeline() {
               })}
               className="w-full bg-transparent outline-none resize-none placeholder:text-slate-400 text-black dark:text-white text-sm sm:text-base"
             />
-
-            {errors.content && (
-              <p className="text-sm text-red-500 mt-2">
-                {errors.content.message}
-              </p>
-            )}
 
             {preview && (
               <div className="mt-3 relative">
@@ -424,6 +412,16 @@ export default function Timeline() {
               </div>
             )}
 
+            <div className="pt-2">
+              {errors.title && (
+                <p className="text-sm text-red-500  ">{errors.title.message}</p>
+              )}
+              {errors.content && (
+                <p className="text-sm text-red-500 ">
+                  {errors.content.message}
+                </p>
+              )}
+            </div>
             <div className="flex justify-between items-center mt-4 border-t border-slate-200 dark:border-slate-600 pt-2">
               <input
                 type="file"
