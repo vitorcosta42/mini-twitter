@@ -4,6 +4,7 @@ import AuthPage from "./pages/AuthPage";
 import Timeline from "./pages/Timeline";
 import { useThemeStore } from "./stores/theme";
 import ThemeToggle from "./components/ThemeToggle";
+import PublicRoute from "./pages/PublicRoute";
 
 export default function App() {
   const theme = useThemeStore((state) => state.theme);
@@ -25,7 +26,9 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Timeline />} />
-        <Route path="/login" element={<AuthPage />} />
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<AuthPage />} />
+        </Route>
       </Routes>
     </div>
   );

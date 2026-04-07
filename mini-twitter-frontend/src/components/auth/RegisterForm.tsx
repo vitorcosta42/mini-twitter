@@ -8,6 +8,7 @@ import {
   type RegisterFormData,
 } from "../../schemas/authSchema";
 import { registerUser } from "../../services/auth";
+import type { AxiosError } from "axios";
 
 type RegisterFormProps = {
   onSuccess: () => void;
@@ -36,9 +37,17 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       setApiError("");
       onSuccess();
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       console.error("Erro ao cadastrar:", error);
-      setApiError("Não foi possível realizar o cadastro.");
+
+      const status = error.response?.status;
+
+      if (status === 409) {
+        setApiError("Usuário já cadastrado.");
+        return;
+      }
+
+      setApiError("Erro ao cadastrar usuário.");
     },
   });
 

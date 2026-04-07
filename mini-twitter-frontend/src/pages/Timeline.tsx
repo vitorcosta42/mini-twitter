@@ -19,6 +19,7 @@ import {
   updatePost,
 } from "../services/post";
 import { ENV } from "../config/env";
+import type { AxiosError } from "axios";
 
 export type Post = {
   id: number;
@@ -156,7 +157,19 @@ export default function Timeline() {
         fileInputRef.current.value = "";
       }
     },
-    onError: () => {
+    onError: (error: AxiosError) => {
+      const status = error.response?.status;
+
+      if (status === 401) {
+        setError("Sua sessão expirou. Faça login novamente.");
+        return;
+      }
+
+      if (status === 403) {
+        setError("Você não tem permissão para publicar posts.");
+        return;
+      }
+
       setError("Não foi possível publicar o post.");
     },
   });
@@ -167,7 +180,19 @@ export default function Timeline() {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       setOpenMenuPostId(null);
     },
-    onError: () => {
+    onError: (error: AxiosError) => {
+      const status = error.response?.status;
+
+      if (status === 401) {
+        setError("Sua sessão expirou. Faça login novamente.");
+        return;
+      }
+
+      if (status === 403) {
+        setError("Você não tem permissão para deletar este post.");
+        return;
+      }
+
       setError("Não foi possível deletar o post.");
     },
   });
@@ -177,7 +202,19 @@ export default function Timeline() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
-    onError: () => {
+    onError: (error: AxiosError) => {
+      const status = error.response?.status;
+
+      if (status === 401) {
+        setError("Sua sessão expirou. Faça login novamente.");
+        return;
+      }
+
+      if (status === 403) {
+        setError("Você não tem permissão para curtir este post.");
+        return;
+      }
+
       setError("Não foi possível curtir o post.");
     },
   });
@@ -203,7 +240,19 @@ export default function Timeline() {
       });
       setEditImage(null);
     },
-    onError: () => {
+    onError: (error: AxiosError) => {
+      const status = error.response?.status;
+
+      if (status === 401) {
+        setError("Sua sessão expirou. Faça login novamente.");
+        return;
+      }
+
+      if (status === 403) {
+        setError("Você não tem permissão para atualizar este post.");
+        return;
+      }
+
       setError("Não foi possível atualizar o post.");
     },
   });
@@ -430,18 +479,35 @@ export default function Timeline() {
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
+                  if (!file) return;
 
-                  if (file) {
-                    const reader = new FileReader();
+                  const MAX_SIZE = 5 * 1024 * 1024;
+                  const ALLOWED_TYPES = [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                  ];
 
-                    reader.onloadend = () => {
-                      const base64String = reader.result as string;
-                      setImage(base64String);
-                      setPreview(base64String);
-                    };
-
-                    reader.readAsDataURL(file);
+                  if (!ALLOWED_TYPES.includes(file.type)) {
+                    setError("Formato inválido. Use JPG, PNG ou WEBP.");
+                    return;
                   }
+
+                  if (file.size > MAX_SIZE) {
+                    setError("A imagem deve ter no máximo 5MB.");
+                    return;
+                  }
+
+                  setError("");
+                  const reader = new FileReader();
+
+                  reader.onloadend = () => {
+                    const base64String = reader.result as string;
+                    setImage(base64String);
+                    setPreview(base64String);
+                  };
+
+                  reader.readAsDataURL(file);
                 }}
               />
 
@@ -597,17 +663,32 @@ export default function Timeline() {
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
+                      if (!file) return;
 
-                      if (file) {
-                        const reader = new FileReader();
+                      const MAX_SIZE = 5 * 1024 * 1024;
+                      const ALLOWED_TYPES = [
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                      ];
 
-                        reader.onloadend = () => {
-                          const base64String = reader.result as string;
-                          setEditImage(base64String);
-                        };
-
-                        reader.readAsDataURL(file);
+                      if (!ALLOWED_TYPES.includes(file.type)) {
+                        setError("Formato inválido. Use JPG, PNG ou WEBP.");
+                        return;
                       }
+
+                      if (file.size > MAX_SIZE) {
+                        setError("A imagem deve ter no máximo 5MB.");
+                        return;
+                      }
+                      setError("");
+                      const reader = new FileReader();
+
+                      reader.onloadend = () => {
+                        const base64String = reader.result as string;
+                        setEditImage(base64String);
+                      };
+                      reader.readAsDataURL(file);
                     }}
                   />
 

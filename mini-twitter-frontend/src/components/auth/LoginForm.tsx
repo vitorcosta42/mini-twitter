@@ -7,6 +7,7 @@ import { loginSchema, type LoginFormData } from "../../schemas/authSchema";
 import { loginUser } from "../../services/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useNavigate } from "react-router-dom";
+import type { AxiosError } from "axios";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,9 +34,22 @@ export function LoginForm() {
       login(response.token, response.user);
       navigate("/");
     },
-    onError: (error) => {
+    onError: (error: AxiosError) => {
       console.error("Erro ao fazer login:", error);
-      setApiError("E-mail ou senha inválidos.");
+
+      const status = error.response?.status;
+
+      if (status === 401) {
+        setApiError("E-mail ou senha inválidos.");
+        return;
+      }
+
+      if (status === 403) {
+        setApiError("Sua conta não tem permissão para acessar.");
+        return;
+      }
+
+      setApiError("Não foi possível realizar login. Tente novamente.");
     },
   });
 
