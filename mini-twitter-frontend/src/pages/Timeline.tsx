@@ -57,6 +57,9 @@ export default function Timeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const editFileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmEdit, setConfirmEdit] = useState(false);
+
   const theme = useThemeStore((state) => state.theme);
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
@@ -277,11 +280,6 @@ export default function Timeline() {
     });
     setEditImage(postToEdit.image || null);
     setOpenMenuPostId(null);
-  };
-
-  const handleDeletePost = async (postId: number) => {
-    setError("");
-    deletePostMutation.mutate(postId);
   };
 
   const handleSaveEditPost = (data: EditPostFormData) => {
@@ -588,7 +586,7 @@ export default function Timeline() {
 
                       <button
                         type="button"
-                        onClick={() => handleDeletePost(post.id)}
+                        onClick={() => setConfirmDeleteId(post.id)}
                         className="w-full font-semibold text-left px-4 py-2 text-sm text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-b-lg"
                       >
                         Deletar
@@ -704,7 +702,8 @@ export default function Timeline() {
 
                   <div className="flex gap-2 justify-end flex-wrap">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={() => setConfirmEdit(true)}
                       disabled={updatePostMutation.isPending}
                       className="px-4 py-2 rounded-lg bg-[#0D93F2] text-white hover:opacity-90 disabled:opacity-60"
                     >
@@ -775,6 +774,72 @@ export default function Timeline() {
       <footer className="px-4 sm:px-8 py-3 text-base sm:text-lg font-bold text-primary dark:bg-[#0F172B] dark:text-white">
         Mini Twitter
       </footer>
+      {confirmDeleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl w-[90%] max-w-md">
+            <h2 className="text-lg font-bold text-black dark:text-white">
+              Confirmar exclusão
+            </h2>
+
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
+              Tem certeza que deseja deletar este post? Essa ação não pode ser
+              desfeita.
+            </p>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => {
+                  deletePostMutation.mutate(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white"
+              >
+                Deletar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl w-[90%] max-w-md">
+            <h2 className="text-lg font-bold text-black dark:text-white">
+              Salvar alterações?
+            </h2>
+
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
+              Deseja salvar as alterações deste post?
+            </p>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setConfirmEdit(false)}
+                className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => {
+                  handleSubmitEdit(handleSaveEditPost)();
+                  setConfirmEdit(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-[#0D93F2] text-white"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
